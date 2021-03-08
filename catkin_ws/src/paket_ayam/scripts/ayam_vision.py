@@ -117,6 +117,7 @@ def show_camera():
     # category_index = label_map_util.create_category_index(categories)
     i = 0
     waktu = 0
+    gettargetData = int(frameWidth/2)
     # Detection
     with detection_graph.as_default():
         with tf.Session(graph=detection_graph) as sess:
@@ -197,7 +198,7 @@ def show_camera():
                     except:
                         print("No Serial")
                     
-                    gettargetData = gettargetData
+                    gettargetData = str(gettargetData)
                     geterrorData = "NULL"
                     getdetectData = "NULL"
 
