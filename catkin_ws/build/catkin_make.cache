@@ -1,0 +1,2 @@
+paket_ayam
+-DCATKIN_DEVEL_PREFIX=/home/ajietb/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/ajietb/catkin_ws/install -G Unix Makefiles

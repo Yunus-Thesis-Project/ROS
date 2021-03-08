@@ -1,0 +1,8 @@
+prefix=/home/ajietb/catkin_ws/devel
+
+Name: paket_ayam
+Description: Description of paket_ayam
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

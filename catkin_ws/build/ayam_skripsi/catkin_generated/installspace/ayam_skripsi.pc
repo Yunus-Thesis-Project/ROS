@@ -1,0 +1,8 @@
+prefix=/home/ajietb/catkin_ws/install
+
+Name: ayam_skripsi
+Description: Description of ayam_skripsi
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

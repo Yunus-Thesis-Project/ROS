@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
+  <node name="ayam_bridge" pkg="paket_ayam" type="ayam_vision.py" output="screen"/>  
+</launch>
