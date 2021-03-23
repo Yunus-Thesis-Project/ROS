@@ -34,6 +34,8 @@ yD = 0
 check = 0
 yaw_memory = 90
 kelas = 1
+konveyor = 1
+timeout = 0
 
 lock_target = False
 
@@ -64,11 +66,11 @@ rospy.init_node("ayam_vision", anonymous=True)
 rate = rospy.Rate(60)
 
 try:
-    serialArduino = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600)
+    serialArduino = serial.Serial(port = "/dev/ttyUSB0", baudrate = 57600)
 except:
     while not serialArduino.isOpen():
         print("Wait Serial Opened")
-        serialArduino = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600)
+        serialArduino = serial.Serial(port = "/dev/ttyUSB0", baudrate = 57600)
         time.sleep(1)
 
 def gstreamer_pipeline(
@@ -100,7 +102,7 @@ def gstreamer_pipeline(
 
 
 def show_camera():
-    global yP, yI, yD, check, yaw_memory, lock_target, kelas
+    global yP, yI, yD, check, yaw_memory, lock_target, kelas, konveyor
     # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
     print(gstreamer_pipeline(flip_method=0))
     cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
@@ -161,7 +163,7 @@ def show_camera():
 
                     if score>0.6:
                         kelas = int(cat)
-                        
+                        konveyor = 0
 
                         cv2.rectangle(image_np, (x1,y1), (x2,y2), (0,255,0), 2)
                         cv2.circle(image_np, (int((x1+x2)/2), int((y1+y2)/2)), 5, (0,255,0), 2)
@@ -175,18 +177,20 @@ def show_camera():
                             lock_target = True
                             yaw_memory = yaw_axis
                         else:
-                            dataWrite = "{}{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_axis, 0, 0, kelas, "#","\n")
+                            dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_axis, 0, 0, kelas, konveyor, "#","\n")
                         
                         if lock_target and check >50:
-                            if error<20:
-                                dataWrite = "{}{},{},{},{},{},{},{},{}{}{}".format("*", 0, 0, 30, 85, 0, 1, 0, kelas, "#","\n")
+                            if error<20 or timeout == 5:
+                                timeout = 0
+                                dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 0, 0, 30, 85, 0, 1, 0, kelas, konveyor, "#","\n")
                             else:
                                 lock_target = False
                                 check = 0
+                                timeout += 1
                         else:
                             check += 1
                             yaw_memory = yaw_axis
-                            dataWrite = "{}{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_memory, 0, 0, kelas, "#","\n")
+                            dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_memory, 0, 0, kelas, konveyor, "#","\n")
                         print(check)
                         print(dataWrite)
                         try:
@@ -198,12 +202,13 @@ def show_camera():
                         geterrorData = str(error)
                         getdetectData = str(cat)
                     else:
-                        dataWrite = "{}{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, 0, 0, 0, kelas, "#","\n")  
+                        konveyor = 1
+                        dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, 0, 0, 0, kelas, konveyor, "#","\n")  
                         try:
                             serialArduino.write(dataWrite.encode())
                         except:
                             try:
-                                serialArduino = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600)
+                                serialArduino = serial.Serial(port = "/dev/ttyUSB0", baudrate = 57600)
                             except:
                                 print("Plug STM32 Please")
                             print("No Serial")
