@@ -102,7 +102,7 @@ def gstreamer_pipeline(
 
 
 def show_camera():
-    global yP, yI, yD, check, yaw_memory, lock_target, kelas, konveyor
+    global yP, yI, yD, check, yaw_memory, lock_target, kelas, konveyor, timeout
     # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
     print(gstreamer_pipeline(flip_method=0))
     cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
@@ -161,7 +161,7 @@ def show_camera():
                     y2 = np.asarray(300 * np.squeeze(boxes)[_index])[2]
                     cat = np.squeeze(classes)[_index]
 
-                    if score>0.6:
+                    if score>0.5:
                         kelas = int(cat)
                         konveyor = 0
 
@@ -169,18 +169,18 @@ def show_camera():
                         cv2.circle(image_np, (int((x1+x2)/2), int((y1+y2)/2)), 5, (0,255,0), 2)
 
                         target_X = int((x1+x2)/2)
-                        yaw_pid = PID(yP, yI, yD, setpoint=int(frameWidth/2), output_limits=(-0.75,0.75))
+                        yaw_pid = PID(yP, yI, yD, setpoint=int(frameWidth/2), output_limits=(-0.3,0.3))
                         yaw_axis = yaw_pid(target_X)
                         error = math.sqrt(math.pow((target_X-int(frameWidth/2)),2))
 
-                        if error<20 :
+                        if error<50 :
                             lock_target = True
                             yaw_memory = yaw_axis
                         else:
                             dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_axis, 0, 0, kelas, konveyor, "#","\n")
                         
                         if lock_target and check >50:
-                            if error<20 or timeout == 5:
+                            if error<20 or timeout >= 3:
                                 timeout = 0
                                 dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 0, 0, 30, 85, 0, 1, 0, kelas, konveyor, "#","\n")
                             else:
