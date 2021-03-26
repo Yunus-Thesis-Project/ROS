@@ -100,6 +100,32 @@ def gstreamer_pipeline(
         )
     )
 
+def test_camera():
+    # To flip the image, modify the flip_method parameter (0 and 2 are the most common)
+    print(gstreamer_pipeline(flip_method=0))
+    cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
+    if cap.isOpened():
+        window_handle = cv2.namedWindow("CSI Camera", cv2.WINDOW_AUTOSIZE)
+        # Window
+        while cv2.getWindowProperty("CSI Camera", 0) >= 0:
+            fps = time.time()
+            ret_val, img = cap.read()
+            cv2.imshow("CSI Camera", cv2.resize(img, (640, 480)))
+            
+            # This also acts as
+            keyCode = cv2.waitKey(1)
+            # Stop the program on the ESC key
+            if(keyCode == ord('s')):
+                cv2.imwrite("/home/ajietb/Desktop/dataset/solder/solder_{}.jpg".format(time.time()), img)
+            elif(keyCode == ord('q')):
+                cap.release()
+                cv2.destroyAllWindows()
+                break
+            print(1/(time.time()-fps))
+        
+    else:
+        print("Unable to open camera")
+
 
 def show_camera():
     global yP, yI, yD, check, yaw_memory, lock_target, kelas, konveyor, timeout
@@ -232,7 +258,11 @@ def show_camera():
 
                     # Display output
                     cv2.imshow('Gun Detection', cv2.resize(image_np, (640, 480)))
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                    keyCode = cv2.waitKey(1)
+                    # Stop the program on the ESC key
+                    if keyCode == ord('q'):
+                        print('exitting program') 
+                        cap.release()
                         cv2.destroyAllWindows()
                         break
                     print(1/(time.time()-fps))
@@ -259,6 +289,7 @@ def show_camera():
                     imagePub.publish(imageData)
                 except Exception as e:
                     print(e)
-
+            
 if __name__ == "__main__":
     show_camera()
+    # test_camera()
