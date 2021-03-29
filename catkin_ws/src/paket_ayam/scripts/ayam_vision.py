@@ -28,9 +28,9 @@ from sensor_msgs.msg import CompressedImage
 
 from simple_pid import PID
 
-yP = 0.007
-yI = 0.0
-yD = 0
+yP = 0.0083
+yI = 0.008
+yD = 0.0
 check = 0
 yaw_memory = 90
 kelas = 1
@@ -40,7 +40,7 @@ timeout = 0
 lock_target = False
 
 # path to the frozen graph:
-PATH_TO_FROZEN_GRAPH = '/home/ajietb/catkin_ws/src/paket_ayam/scripts/frozen_inference_graph.pb'
+PATH_TO_FROZEN_GRAPH = '/home/ajietb/catkin_ws/src/paket_ayam/scripts/model_stabil.pb'
 
 # path to the label map
 # PATH_TO_LABEL_MAP = '/home/ajietb/catkin_ws/src/paket_ayam/scripts/object-detection.pbtxt'
@@ -195,9 +195,10 @@ def show_camera():
                         cv2.circle(image_np, (int((x1+x2)/2), int((y1+y2)/2)), 5, (0,255,0), 2)
 
                         target_X = int((x1+x2)/2)
-                        yaw_pid = PID(yP, yI, yD, setpoint=int(frameWidth/2), output_limits=(-0.3,0.3))
+                        yaw_pid = PID(yP, yI, yD, setpoint=int(frameWidth/2), output_limits=(-1,1))
                         yaw_axis = yaw_pid(target_X)
                         error = math.sqrt(math.pow((target_X-int(frameWidth/2)),2))
+                        # dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_axis, 0, 0, kelas, konveyor, "#","\n")
 
                         if error<50 :
                             lock_target = True
@@ -205,8 +206,8 @@ def show_camera():
                         else:
                             dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_axis, 0, 0, kelas, konveyor, "#","\n")
                         
-                        if lock_target and check >50:
-                            if error<20 or timeout >= 3:
+                        if lock_target and check>25:
+                            if error<10 or timeout >= 3:
                                 timeout = 0
                                 dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 0, 0, 30, 85, 0, 1, 0, kelas, konveyor, "#","\n")
                             else:
@@ -217,6 +218,7 @@ def show_camera():
                             check += 1
                             yaw_memory = yaw_axis
                             dataWrite = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, yaw_memory, 0, 0, kelas, konveyor, "#","\n")
+                        
                         print(check)
                         print(dataWrite)
                         try:
@@ -257,7 +259,7 @@ def show_camera():
                     # )
 
                     # Display output
-                    cv2.imshow('Gun Detection', cv2.resize(image_np, (640, 480)))
+                    cv2.imshow('Spare Part Detection', cv2.resize(image_np, (640, 480)))
                     keyCode = cv2.waitKey(1)
                     # Stop the program on the ESC key
                     if keyCode == ord('q'):
@@ -265,6 +267,20 @@ def show_camera():
                         cap.release()
                         cv2.destroyAllWindows()
                         break
+                    elif keyCode == ord('i'):
+                        yP += 0.0001
+                    elif keyCode == ord('u'):
+                        yP -= 0.0001
+                    elif keyCode == ord('k'):
+                        yI += 0.0001
+                    elif keyCode == ord('j'):
+                        yI -= 0.0001
+                    elif keyCode == ord('m'):
+                        yD += 0.0001
+                    elif keyCode == ord('n'):
+                        yD -= 0.0001
+                    else:
+                        print(yP, yI, yD)
                     print(1/(time.time()-fps))
                     # time.sleep(0.5)
                     # cv2.waitKey(0)
