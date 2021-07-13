@@ -46,6 +46,8 @@ y_count = 0
 y_init = 0
 y_m = 0
 delay = 0
+integ = 0
+delta_t = 0
 
 fall_detect = False
 pick = True
@@ -231,6 +233,13 @@ def show_camera():
                             yaw_pid = PID(yP, yI, yD, setpoint=int(frameWidth/2), output_limits=(-1,1))
                             yaw_axis = yaw_pid(target_X)
                             error = math.sqrt(math.pow((target_X-int(frameWidth/2)),2))
+                            integ += integ * (time.time() - delta_t)
+                            delta_t = time.time()
+
+                            pixels = (62.2 / 300) * integ
+                            if pixels < 150:
+                                pixels *= -1
+                            yaw_axis = pixels
 
                             if (y_m < 0 and yaw_axis > 0) or (y_m > 0 and yaw_axis < 0):
                                 y_data = "{}{},{},{},{},{},{},{},{},{}{}{}".format("*", 90, 0, 30, 85, 0, 0, 15, kelas, 1, "#","\n")
